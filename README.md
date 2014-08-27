@@ -4,7 +4,11 @@
 
 Go-Enigma is a simple go client for the [enigma.io](https://app.enigma.io/api) API.
 
-## HOW-TO
+## Documentation
+
+Full documentation and examples are available in the [godoc package index](http://godoc.org/github.com/mohamedattahri/go-enigma)
+
+## Examples
 
 ### Client
 
