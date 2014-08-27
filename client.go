@@ -2,7 +2,7 @@
 //
 // The Enigma API allows users to download datasets, query metadata, or perform server side operations on tables in Enigma.
 // All calls to the API are made through a RESTful protocol and require an API key.
-// The Enigma API is served over HTTPS. To ensure data privacy, unencrypted HTTP is not supported.
+// The Enigma API is served over HTTPS.
 package enigma
 
 import (
@@ -100,6 +100,7 @@ func doQuery(baseUri, datapath string, params url.Values, response interface{}) 
 	return
 }
 
+// MetaParentNodeResponse represents the structure of a metadata response describing a parent node.
 type MetaParentNodeResponse struct {
 	DataPath string `json:"data_path"`
 	Result   struct {
@@ -130,9 +131,10 @@ type MetaParentNodeResponse struct {
 	} `json:"info"`
 }
 
+// MetaTableNodeResponse represents the structure of a metadata response describing a table.
 type MetaTableNodeResponse struct {
-	// DataPath string `json:"datapath"`
-	Result struct {
+	DataPath string `json:"datapath"`
+	Result   struct {
 		Path []struct {
 			Level       string `json:"level"`
 			Label       string `json:"label"`
@@ -167,20 +169,22 @@ type MetaTableNodeResponse struct {
 	} `json:"info"`
 }
 
-type metaQuery query
+// MetaQuery can be used on all datapaths to query their metadata.
+type MetaQuery query
 
-func (q *metaQuery) Parent(datapath string) (response *MetaParentNodeResponse, err error) {
+// Parent metadata request for the given datapath.
+func (q *MetaQuery) Parent(datapath string) (response *MetaParentNodeResponse, err error) {
 	err = doQuery(q.baseUri, datapath, q.params, &response)
 	return
 }
 
-// Results or error returned by the server.
-func (q *metaQuery) Table(datapath string) (response *MetaTableNodeResponse, err error) {
+// Table metadata request for the given metadata.
+func (q *MetaQuery) Table(datapath string) (response *MetaTableNodeResponse, err error) {
 	err = doQuery(q.baseUri, datapath, q.params, &response)
 	return
 }
 
-// StatsResponse attributes
+// StatsResponse represents the response returned from a Stats endpoint.
 type StatsResponse struct {
 	DataPath string          `json:"data_path"`
 	Result   json.RawMessage `json:"result"`
@@ -194,29 +198,29 @@ type StatsResponse struct {
 	} `json:"info"`
 }
 
-// Table datapaths can be queried by column for statistics on the data that it contains.
+// StatsQuery can be used to query columns of tables for statistics on the data they contain.
 // Like data queries, stats queries may be filtered, sorted and paginated using the provided URL parameters.
-type statsQuery query
-
-// Limit the number of frequency, compound sum, or compound average results returned (max. 500).
-// Defaults to 500.
-func (q *statsQuery) Limit(limit int) *statsQuery {
-	q.params.Add("limit", strconv.Itoa(limit))
-	return q
-}
+type StatsQuery query
 
 // selectColumn sets the column to generate statistics for. Required.
 // Called directly from the Client.Stats as it's a mandatory field.
-func (q *statsQuery) selectColumn(column string) *statsQuery {
+func (q *StatsQuery) selectColumn(column string) *StatsQuery {
 	q.params.Add("select", column)
 	return q
 }
 
-// Filter results by only returning rows that match a search statsQuery. Multiple search parameters may be provided.
+// Limit the number of frequency, compound sum, or compound average results returned (max. 500).
+// Defaults to 500.
+func (q *StatsQuery) Limit(limit int) *StatsQuery {
+	q.params.Add("limit", strconv.Itoa(limit))
+	return q
+}
+
+// Filter results by only returning rows that match a search StatsQuery. Multiple search parameters may be provided.
 // By default this searches the entire table for matching text.
-// To search particular fields only, use the statsQuery format "@fieldname statsQuery".
-// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "statsQuery1|statsQuery2". See the "Complex Data Search" example on the right for a demonstration.
-func (q *statsQuery) Search(query string) *statsQuery {
+// To search particular fields only, use the StatsQuery format "@fieldname StatsQuery".
+// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "StatsQuery1|StatsQuery2". See the "Complex Data Search" example on the right for a demonstration.
+func (q *StatsQuery) Search(query string) *StatsQuery {
 	q.params.Add("search", query)
 	return q
 }
@@ -228,52 +232,56 @@ func (q *statsQuery) Search(query string) *statsQuery {
 // Match rows where column matches one of the provided values.
 // <column> [not] between <value> and <value>
 // Match rows where column lies within range provided (inclusive).
-func (q *statsQuery) Where(query string) *statsQuery {
+func (q *StatsQuery) Where(query string) *StatsQuery {
 	q.params.Add("where", query)
 	return q
 }
 
 // Conjunction is only applicable when more than one "search" or "where" parameter is provided. Defaults to "and".
-func (q *statsQuery) Conjunction(conjunction Conjunction) *statsQuery {
+func (q *StatsQuery) Conjunction(conjunction Conjunction) *StatsQuery {
 	q.params.Add("conjunction", string(conjunction))
 	return q
 }
 
-func (q *statsQuery) Operation(operation Operation) *statsQuery {
+// Operation to run the given column.
+// For a numerical column, valid operations are sum, avg, stddev, variance, max, min and frequency.
+// For a date column, valid operations are max,min and frequency.
+// For all other columns, the only valid operation is frequency.
+// Defaults to all available operations based on the column's type.
+func (q *StatsQuery) Operation(operation Operation) *StatsQuery {
 	q.params.Add("operation", string(operation))
 	return q
 }
 
-// Compound operation to run on a given pair of columns.
+// By indicates the compound operation to run on a given pair of columns.
 // Valid compound operations are sum and avg.
-// When running a compound operation query, the "of" parameter is quired (see below).
-func (q *statsQuery) By(operation Operation) *statsQuery {
+// When running a compound operation query, the "of" parameter is required (see below).
+func (q *StatsQuery) By(operation Operation) *StatsQuery {
 	q.params.Add("by", string(operation))
 	return q
 }
 
-// Numerical column to compare against when running a compound operation.
-// Required when using the "by" parameter.
-// Must be a numerical column.
-func (q *statsQuery) Of(column string) *statsQuery {
+// Of indicates the numerical column to compare against when running a compound operation.
+// Required when using the "by" parameter. Must be a numerical column.
+func (q *StatsQuery) Of(column string) *StatsQuery {
 	q.params.Add("of", column)
 	return q
 }
 
 // Sort rows by a particular column in a given direction. + denotes ascending order, - denotes descending.
-func (q *statsQuery) Sort(direction SortDirection) *statsQuery {
+func (q *StatsQuery) Sort(direction SortDirection) *StatsQuery {
 	q.params.Add("sort", string(direction))
 	return q
 }
 
 // Page paginates row results and returns the nth page of results. Pages are calculated based on the current limit, which defaults to 500.
-func (q *statsQuery) Page(number int) *statsQuery {
+func (q *StatsQuery) Page(number int) *StatsQuery {
 	q.params.Add("page", strconv.Itoa(number))
 	return q
 }
 
 // Results or error returned by the server.
-func (q *statsQuery) Results() (response *StatsResponse, err error) {
+func (q *StatsQuery) Results() (response *StatsResponse, err error) {
 	err = doQuery(q.baseUri, q.datapath, q.params, &response)
 	return
 }
@@ -290,18 +298,18 @@ type DataResponse struct {
 	} `json:"info"`
 }
 
-// Table datapaths can be queried for the data they contain.
+// DataQuery queries table datapaths for the data they contain.
 // Data queries may be filtered, sorted and paginated using the provided URL parameters.
-type dataQuery query
+type DataQuery query
 
 // Limit the number of rows returned (max. 500). Defaults to 500.
-func (q *dataQuery) Limit(number int) *dataQuery {
+func (q *DataQuery) Limit(number int) *DataQuery {
 	q.params.Add("limit", strconv.Itoa(number))
 	return q
 }
 
 // Select the columns to be returned with each row. Default is to return all columns.
-func (q *dataQuery) Select(columns ...string) *dataQuery {
+func (q *DataQuery) Select(columns ...string) *DataQuery {
 	q.params.Add("select", strings.Join(columns, ","))
 	return q
 }
@@ -309,9 +317,9 @@ func (q *dataQuery) Select(columns ...string) *dataQuery {
 // Search filters the results by only returning rows that match a query.
 // Multiple search parameters may be provided.
 // By default this searches the entire table for matching text.
-// To search particular fields only, use the dataQuery format "@fieldname dataQuery".
-// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "dataQuery1|dataQuery2". See the "Complex Data Search" example on the right for a demonstration.
-func (q *dataQuery) Search(query string) *dataQuery {
+// To search particular fields only, use the query format "@fieldname query".
+// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "DataQuery1|DataQuery2". See the "Complex Data Search" example on the right for a demonstration.
+func (q *DataQuery) Search(query string) *DataQuery {
 	q.params.Add("search", query)
 	return q
 }
@@ -323,32 +331,32 @@ func (q *dataQuery) Search(query string) *dataQuery {
 // Match rows where column matches one of the provided values.
 // <column> [not] between <value> and <value>
 // Match rows where column lies within range provided (inclusive).
-func (q *dataQuery) Where(query string) *dataQuery {
+func (q *DataQuery) Where(query string) *DataQuery {
 	q.params.Add("where", query)
 	return q
 }
 
 // Conjunction is only applicable when more than one "search" or "where" parameter is provided. Defaults to "and".
-func (q *dataQuery) Conjunction(conjunction Conjunction) *dataQuery {
+func (q *DataQuery) Conjunction(conjunction Conjunction) *DataQuery {
 	q.params.Add("conjunction", string(conjunction))
 	return q
 }
 
 // Sort rows by a particular column in a given direction.
-func (q *dataQuery) Sort(column string, direction SortDirection) *dataQuery {
+func (q *DataQuery) Sort(column string, direction SortDirection) *DataQuery {
 	q.params.Add("sort", column+string(direction))
 	return q
 }
 
 // Page paginates row results and return the nth page of results.
 // Pages are calculated based on the current limit, which defaults to 500.
-func (q *dataQuery) Page(number int) *dataQuery {
+func (q *DataQuery) Page(number int) *DataQuery {
 	q.params.Add("page", strconv.Itoa(number))
 	return q
 }
 
 // Results or error returned by the server.
-func (q *dataQuery) Results() (response DataResponse, err error) {
+func (q *DataQuery) Results() (response DataResponse, err error) {
 	err = doQuery(q.baseUri, q.datapath, q.params, &response)
 	return
 }
@@ -360,10 +368,10 @@ type exportResponse struct {
 	HeadUrl   string `json:"head_url"`
 }
 
-type exportQuery query
+type ExportQuery query
 
 // Select the list of columns to be returned with each row. Default is to return all columns.
-func (q *exportQuery) Select(columns ...string) *exportQuery {
+func (q *ExportQuery) Select(columns ...string) *ExportQuery {
 	q.params.Add("select", strings.Join(columns, ","))
 	return q
 }
@@ -371,9 +379,9 @@ func (q *exportQuery) Select(columns ...string) *exportQuery {
 // Search filters results by only returning rows that match a search query.
 // Multiple search parameters may be provided.
 // By default this searches the entire table for matching text.
-// To search particular fields only, use the dataQuery format "@fieldname dataQuery".
+// To search particular fields only, use the DataQuery format "@fieldname DataQuery".
 // To match multiple queries within a single search parameter, the | (or) operator can be used eg. "query1|query2".
-func (q *exportQuery) Search(query string) *exportQuery {
+func (q *ExportQuery) Search(query string) *ExportQuery {
 	q.params.Add("search", query)
 	return q
 }
@@ -386,31 +394,31 @@ func (q *exportQuery) Search(query string) *exportQuery {
 // Match rows where column matches one of the provided values.
 // <column> [not] between <value> and <value>
 // Match rows where column lies within range provided (inclusive).
-func (q *exportQuery) Where(query string) *exportQuery {
+func (q *ExportQuery) Where(query string) *ExportQuery {
 	q.params.Add("where", query)
 	return q
 }
 
 // Conjunction is only applicable when more than one "search" or "where" parameter is provided. Defaults to "and".
-func (q *exportQuery) Conjunction(conjunction Conjunction) *exportQuery {
+func (q *ExportQuery) Conjunction(conjunction Conjunction) *ExportQuery {
 	q.params.Add("conjunction", string(conjunction))
 	return q
 }
 
 // Sort rows by a particular column in a given direction. + denotes ascending order, - denotes descending.
-func (q *exportQuery) Sort(column string, direction SortDirection) *exportQuery {
+func (q *ExportQuery) Sort(column string, direction SortDirection) *ExportQuery {
 	q.params.Add("sort", column+string(direction))
 	return q
 }
 
 // Page paginates row results and returns the nth page of results. Pages are calculated based on the current limit, which defaults to 500.
-func (q *exportQuery) Page(number int) *exportQuery {
+func (q *ExportQuery) Page(number int) *ExportQuery {
 	q.params.Add("page", strconv.Itoa(number))
 	return q
 }
 
 // FileUrl returns the URL of the GZip file containing the exported data.
-func (q *exportQuery) FileUrl() (url string, err error) {
+func (q *ExportQuery) FileUrl() (url string, err error) {
 	var response exportResponse
 	err = doQuery(q.baseUri, q.datapath, q.params, &response)
 	return response.ExportUrl, err
@@ -419,8 +427,9 @@ func (q *exportQuery) FileUrl() (url string, err error) {
 // Client of the Enigma API.
 // Use NewClient to instantiate a new instance.
 type Client struct {
-	key  string
-	Meta *metaQuery
+	key string
+	// Meta can be used to query all datapaths for their metadata.
+	Meta *MetaQuery
 }
 
 func (client *Client) buildUri(ep endpoint) string {
@@ -432,8 +441,8 @@ func (client *Client) buildUri(ep endpoint) string {
 // Data queries may be filtered, sorted and paginated using the returned request  object.
 // For large tables and tables with a large number of columns, data API calls may take some time to complete.
 // API users are advised to make use of the "select" and/or "limit" parameters whenever possible to improve performance.
-func (client *Client) Data(datapath string) *dataQuery {
-	return &dataQuery{
+func (client *Client) Data(datapath string) *DataQuery {
+	return &DataQuery{
 		datapath: datapath,
 		params:   url.Values{},
 		baseUri:  client.buildUri(data),
@@ -442,8 +451,8 @@ func (client *Client) Data(datapath string) *dataQuery {
 
 // Stats queries table datapaths by column for statistics on the data that it contains.
 // Like data queries, stats queries may be filtered, sorted and paginated using the returned request objet.
-func (client *Client) Stats(datapath, column string) *statsQuery {
-	q := &statsQuery{
+func (client *Client) Stats(datapath, column string) *StatsQuery {
+	q := &StatsQuery{
 		datapath: datapath,
 		params:   url.Values{},
 		baseUri:  client.buildUri(stats),
@@ -452,8 +461,8 @@ func (client *Client) Stats(datapath, column string) *statsQuery {
 }
 
 // Export requests exports of table datapaths as GZiped files.
-func (client *Client) Export(datapath string) *exportQuery {
-	return &exportQuery{
+func (client *Client) Export(datapath string) *ExportQuery {
+	return &ExportQuery{
 		datapath: datapath,
 		params:   url.Values{},
 		baseUri:  client.buildUri(export),
@@ -466,7 +475,7 @@ func NewClient(key string) (instance *Client) {
 		key: key,
 	}
 
-	instance.Meta = &metaQuery{
+	instance.Meta = &MetaQuery{
 		baseUri: instance.buildUri(meta),
 	}
 
