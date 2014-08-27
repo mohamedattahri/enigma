@@ -48,13 +48,17 @@ func Example_stats() {
 }
 
 func Example_export() {
+	ready := make(chan string)
+
 	client := enigma.NewClient("some_api_key")
-	url, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl()
+	_, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl(ready)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(url)
+
+	url := <-ready
+	// url now points to a ready to download file.
 }
 
 func TestUrlBuilding(t *testing.T) {
