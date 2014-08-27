@@ -433,7 +433,8 @@ func (q *ExportQuery) FileUrl() (url string, err error) {
 }
 
 // Client of the Enigma API.
-// Use NewClient to instantiate a new instance.
+// Use NewClient to instantiate a new instance as in the following example:
+//    client := enigma.NewClient("some_api_key")
 type Client struct {
 	key string
 	// Meta can be used to query all datapaths for their metadata.
@@ -449,6 +450,9 @@ func (client *Client) buildUri(ep endpoint) string {
 // Data queries may be filtered, sorted and paginated using the returned request  object.
 // For large tables and tables with a large number of columns, data API calls may take some time to complete.
 // API users are advised to make use of the "select" and/or "limit" parameters whenever possible to improve performance.
+//
+// Build a query by chaining up parameters, then call Results() to actually perform the query.
+//    client.Data("us.gov.whitehouse.visitor-list").Select("namefull", "appt_made_date").Sort("namefirst", enigma.Desc).Results()
 func (client *Client) Data(datapath string) *DataQuery {
 	return &DataQuery{
 		datapath: datapath,
@@ -459,6 +463,9 @@ func (client *Client) Data(datapath string) *DataQuery {
 
 // Stats queries table datapaths by column for statistics on the data that it contains.
 // Like data queries, stats queries may be filtered, sorted and paginated using the returned request objet.
+//
+// Build a query by chaining up parameters, then call Results() to actually perform the query.
+//    client.Stats("us.gov.whitehouse.visitor-list", "total_people").Operation(enigma.Sum).Results()
 func (client *Client) Stats(datapath, column string) *StatsQuery {
 	q := &StatsQuery{
 		datapath: datapath,
@@ -469,6 +476,9 @@ func (client *Client) Stats(datapath, column string) *StatsQuery {
 }
 
 // Export requests exports of table datapaths as GZiped files.
+//
+// Build a query by chaining up parameters, then call FileUrl() to perform the query and get the Url of the file to download.
+//    client.Export("us.gov.whitehouse.visitor-list").Select("namefull").Sort("namefull", Asc).FileUrl()
 func (client *Client) Export(datapath string) *ExportQuery {
 	return &ExportQuery{
 		datapath: datapath,

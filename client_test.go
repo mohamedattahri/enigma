@@ -1,6 +1,7 @@
 package enigma
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -12,6 +13,49 @@ const (
 var (
 	client = NewClient(key)
 )
+
+func Example_meta() {
+	client := enigma.NewClient("some_api_key")
+	response, err := client.Meta.Table("us.gov.whitehouse.visitor-list")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(response.Result.DbBoundaryLabel)
+}
+
+func Example_data() {
+	client := enigma.NewClient("some_api_key")
+	response, err := client.Data("us.gov.whitehouse.visitor-list").Select("namefull", "appt_made_date").Sort("namefirst", enigma.Desc).Results()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(response.Result))
+}
+
+func Example_stats() {
+	client := enigma.NewClient("some_api_key")
+	response, err := client.Stats("us.gov.whitehouse.visitor-list", "total_people").Operation(enigma.Sum).Results()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var obj map[string]string
+	json.Unmarshal(response.Result, &obj)
+	fmt.Println(obj["sum"])
+}
+
+func Example_export() {
+	client := enigma.NewClient("some_api_key")
+	url, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(url)
+}
 
 func TestUrlBuilding(t *testing.T) {
 	query1 := client.Data("us.gov.whitehouse.visitor-list").Select("namefull", "appt_made_date").Sort("namefirst", Desc)
