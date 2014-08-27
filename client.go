@@ -13,11 +13,17 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
 	root    = "https://api.enigma.io" //<version>/<endpoint>/<api key>/<datapath>/<parameters>
 	version = "v2"
+)
+
+const (
+	pollingInterval = 10 * time.Second
+	pollingTimeout  = 2 * time.Minute
 )
 
 type endpoint string
@@ -376,6 +382,7 @@ type exportResponse struct {
 	HeadUrl   string `json:"head_url"`
 }
 
+// ExportQuery queries data tables to produce a file that can be downloaded.
 type ExportQuery query
 
 // Select the list of columns to be returned with each row. Default is to return all columns.
@@ -426,9 +433,34 @@ func (q *ExportQuery) Page(number int) *ExportQuery {
 }
 
 // FileUrl returns the URL of the GZip file containing the exported data.
-func (q *ExportQuery) FileUrl() (url string, err error) {
+//
+// Passing the ready chan will poll the returned URL until the  file is ready
+// for take out. The url pushed down the channel should be used to download the file.
+//
+// Passing nil will simply return the url of the file to download.
+//
+// 	ready := make(chan string)
+// 	_, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl(ready)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return
+// 	}
+// 	downloadUrl := <- ready
+func (q *ExportQuery) FileUrl(ready chan string) (url string, err error) {
 	var response exportResponse
 	err = doQuery(q.baseUri, q.datapath, q.params, &response)
+
+	if ready != nil {
+		go func(pollingUrl, downloadUrl string) {
+			for interval := pollingInterval; interval < pollingTimeout; interval = interval * 2 {
+				if resp, err := http.Head(pollingUrl); err == nil && resp.StatusCode == 200 {
+					ready <- downloadUrl
+					break
+				}
+				time.Sleep(interval)
+			}
+		}(response.HeadUrl, response.ExportUrl)
+	}
 	return response.ExportUrl, err
 }
 
@@ -476,6 +508,7 @@ func (client *Client) Stats(datapath, column string) *StatsQuery {
 }
 
 // Export requests exports of table datapaths as GZiped files.
+// When the export API is called, an export is queued and the API immediately returns a URL pointing to the future location of the exported file. Users should poll the URL until the file becomes available.
 //
 // Build a query by chaining up parameters, then call FileUrl() to perform the query and get the Url of the file to download.
 //    client.Export("us.gov.whitehouse.visitor-list").Select("namefull").Sort("namefull", Asc).FileUrl()
