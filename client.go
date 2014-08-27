@@ -65,11 +65,19 @@ type query struct {
 	params   url.Values
 }
 
-func doQuery(baseUri, datapath string, params url.Values, response interface{}) (err error) {
+// Although used in a single location, this function has been isolated to make the code
+// easier to test.
+func buildUrl(baseUri, datapath string, params url.Values) string {
 	uri := baseUri + "/" + datapath
 	if len(params) > 0 {
 		uri += "?" + params.Encode()
 	}
+	return uri
+}
+
+// doQuery performs the actual HTTP request and parses the returned JSON into a typed response structure.
+func doQuery(baseUri, datapath string, params url.Values, response interface{}) (err error) {
+	uri := buildUrl(baseUri, datapath, params)
 
 	resp, err := http.Get(uri)
 	if err != nil {
