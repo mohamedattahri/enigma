@@ -30,7 +30,7 @@ func main() {
 #### Parent
 
 ````go
-response, err := client.Meta.Parent("us.gov.whitehouse")
+response, err := client.Meta().Parent("us.gov.whitehouse")
 if err != nil {
 	fmt.Println(err)
 	return
@@ -41,7 +41,7 @@ fmt.Println(response.Info.ChildrenTablesTotal)
 #### Table
 
 ````go
-response, err := client.Meta.Table("us.gov.whitehouse.visitor-list")
+response, err := client.Meta().Table("us.gov.whitehouse.visitor-list")
 if err != nil {
 	fmt.Println(err)
 	return

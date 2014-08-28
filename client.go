@@ -505,14 +505,19 @@ func (q *ExportQuery) FileUrl(ready chan string) (url string, err error) {
 //    client := enigma.NewClient("some_api_key")
 type Client struct {
 	key string
-	// Meta can be used to query all datapaths for their metadata.
-	Meta *MetaQuery
 }
 
 // buildUri assembles the URI tho which queries should be sent.
 func (client *Client) buildUri(ep endpoint) string {
 	//<root>/<version>/<endpoint>/<api key>/<datapath>/<parameters>
 	return strings.Join([]string{root, version, string(ep), client.key}, "/")
+}
+
+// Meta can be used to query all datapaths for their metadata.
+func (client *Client) Meta() *MetaQuery {
+	return &MetaQuery{
+		baseUri: client.buildUri(meta),
+	}
 }
 
 // Data queries the content of table datapaths.
@@ -559,14 +564,8 @@ func (client *Client) Export(datapath string) *ExportQuery {
 }
 
 // NewClient instantiates a new Client instance with a given API key.
-func NewClient(key string) (instance *Client) {
-	instance = &Client{
+func NewClient(key string) *Client {
+	return &Client{
 		key: key,
 	}
-
-	instance.Meta = &MetaQuery{
-		baseUri: instance.buildUri(meta),
-	}
-
-	return instance
 }

@@ -1,6 +1,8 @@
 package enigma
 
 import (
+	enigma "."
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -16,7 +18,7 @@ var (
 
 func Example_meta() {
 	client := enigma.NewClient("some_api_key")
-	response, err := client.Meta.Table("us.gov.whitehouse.visitor-list")
+	response, err := client.Meta().Table("us.gov.whitehouse.visitor-list")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -58,6 +60,7 @@ func Example_export() {
 	}
 
 	url := <-ready
+	fmt.Println(url)
 	// url now points to a ready to download file.
 }
 
@@ -89,7 +92,7 @@ func TestApiError(t *testing.T) {
 }
 
 func TestMetaQuery(t *testing.T) {
-	if client.Meta == nil {
+	if client.Meta() == nil {
 		t.Fatal("Meta query object is not accessible")
 	}
 }
