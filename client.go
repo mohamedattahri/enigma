@@ -357,7 +357,7 @@ func (q *DataQuery) Select(columns ...string) *DataQuery {
 //
 // To search particular fields only, use the query format "@fieldname query".
 //
-// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "DataQuery1|DataQuery2". See the "Complex Data Search" example on the right for a demonstration.
+// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "DataQuery1|DataQuery2".
 func (q *DataQuery) Search(query string) *DataQuery {
 	q.params.Add("search", query)
 	return q
