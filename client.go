@@ -3,6 +3,15 @@
 // The Enigma API allows users to download datasets, query metadata, or perform server side operations on tables in Enigma.
 // All calls to the API are made through a RESTful protocol and require an API key.
 // The Enigma API is served over HTTPS.
+//
+// About Enigma
+//
+// Enigma.io (http://enigma.io) lets you quickly search and analyze billions of public records published by governments, companies and organizations.
+//
+// Reference
+//
+// Please refer to the official documentation of the API http://app.enigma.io/api for more info.
+//
 package enigma
 
 import (
@@ -192,7 +201,7 @@ func (q *MetaQuery) Parent(datapath string) (response *MetaParentNodeResponse, e
 	return
 }
 
-// Table metadata request for the given metadata.
+// Table metadata request for the given datapath.
 func (q *MetaQuery) Table(datapath string) (response *MetaTableNodeResponse, err error) {
 	err = doQuery(q.baseUri, datapath, q.params, &response)
 	return
@@ -232,18 +241,25 @@ func (q *StatsQuery) Limit(limit int) *StatsQuery {
 
 // Filter results by only returning rows that match a search StatsQuery. Multiple search parameters may be provided.
 // By default this searches the entire table for matching text.
+//
 // To search particular fields only, use the StatsQuery format "@fieldname StatsQuery".
-// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "StatsQuery1|StatsQuery2". See the "Complex Data Search" example on the right for a demonstration.
+//
+// To match multiple queries within a single search parameter, the | (or) operator can be used eg. "StatsQuery1|StatsQuery2".
 func (q *StatsQuery) Search(query string) *StatsQuery {
 	q.params.Add("search", query)
 	return q
 }
 
-// Where filters results with a SQL-style "where" clause. Only applies to numerical and date columns – use the "search" parameter for strings. Multiple where parameters may be provided.
-// <column><operator><value>
-// Valid operators are >=, >, =, !=, <, and <=.
+// Where filters results with a SQL-style "where" clause.
+// Only applies to numerical and date columns – use the Search() for strings. Multiple where parameters may be provided.
+//
+// Query format: <column><operator><value>
+//
+// Valid operators: >=, >, =, !=, <, and <=.
+//
 // <column> [not] in (<value>,<value>,...)
 // Match rows where column matches one of the provided values.
+//
 // <column> [not] between <value> and <value>
 // Match rows where column lies within range provided (inclusive).
 func (q *StatsQuery) Where(query string) *StatsQuery {
@@ -251,16 +267,20 @@ func (q *StatsQuery) Where(query string) *StatsQuery {
 	return q
 }
 
-// Conjunction is only applicable when more than one "search" or "where" parameter is provided. Defaults to "and".
+// Conjunction is only applicable when more than one Search() or Where() parameter is provided. Defaults to And.
 func (q *StatsQuery) Conjunction(conjunction Conjunction) *StatsQuery {
 	q.params.Add("conjunction", string(conjunction))
 	return q
 }
 
 // Operation to run the given column.
-// For a numerical column, valid operations are sum, avg, stddev, variance, max, min and frequency.
+//
+// For a numerical column, valid operations are Sum, Avg, StdDev, Variance, Max, Min and Frequency.
+//
 // For a date column, valid operations are max,min and frequency.
+//
 // For all other columns, the only valid operation is frequency.
+//
 // Defaults to all available operations based on the column's type.
 func (q *StatsQuery) Operation(operation Operation) *StatsQuery {
 	q.params.Add("operation", string(operation))
@@ -269,20 +289,22 @@ func (q *StatsQuery) Operation(operation Operation) *StatsQuery {
 
 // By indicates the compound operation to run on a given pair of columns.
 // Valid compound operations are sum and avg.
-// When running a compound operation query, the "of" parameter is required (see below).
+//
+// When running a compound operation query, the Of() parameter is required (see below).
 func (q *StatsQuery) By(operation Operation) *StatsQuery {
 	q.params.Add("by", string(operation))
 	return q
 }
 
 // Of indicates the numerical column to compare against when running a compound operation.
-// Required when using the "by" parameter. Must be a numerical column.
+//
+// Required when using the By() parameter. Must be a numerical column.
 func (q *StatsQuery) Of(column string) *StatsQuery {
 	q.params.Add("of", column)
 	return q
 }
 
-// Sort rows by a particular column in a given direction. + denotes ascending order, - denotes descending.
+// Sort rows by a particular column in a given direction. Asc denotes ascending order, Desc denotes descending.
 func (q *StatsQuery) Sort(direction SortDirection) *StatsQuery {
 	q.params.Add("sort", string(direction))
 	return q
@@ -330,19 +352,27 @@ func (q *DataQuery) Select(columns ...string) *DataQuery {
 
 // Search filters the results by only returning rows that match a query.
 // Multiple search parameters may be provided.
+//
 // By default this searches the entire table for matching text.
+//
 // To search particular fields only, use the query format "@fieldname query".
+//
 // To match multiple queries within a single search parameter, the | (or) operator can be used eg. "DataQuery1|DataQuery2". See the "Complex Data Search" example on the right for a demonstration.
 func (q *DataQuery) Search(query string) *DataQuery {
 	q.params.Add("search", query)
 	return q
 }
 
-// Where filters results with a SQL-style "where" clause. Only applies to numerical and date columns – use the "search" parameter for strings. Multiple where parameters may be provided.
-// <column><operator><value>
-// Valid operators are >=, >, =, !=, <, and <=.
+// Where filters results with a SQL-style "where" clause.
+// Only applies to numerical and date columns – use the "search" parameter for strings. Multiple where parameters may be provided.
+//
+// Query format: <column><operator><value>
+//
+// Valid operators: >=, >, =, !=, <, and <=.
+//
 // <column> [not] in (<value>,<value>,...)
 // Match rows where column matches one of the provided values.
+//
 // <column> [not] between <value> and <value>
 // Match rows where column lies within range provided (inclusive).
 func (q *DataQuery) Where(query string) *DataQuery {
@@ -350,7 +380,7 @@ func (q *DataQuery) Where(query string) *DataQuery {
 	return q
 }
 
-// Conjunction is only applicable when more than one "search" or "where" parameter is provided. Defaults to "and".
+// Conjunction is only applicable when more than one Search() or Where() parameter is provided. Defaults to And.
 func (q *DataQuery) Conjunction(conjunction Conjunction) *DataQuery {
 	q.params.Add("conjunction", string(conjunction))
 	return q
@@ -393,8 +423,10 @@ func (q *ExportQuery) Select(columns ...string) *ExportQuery {
 
 // Search filters results by only returning rows that match a search query.
 // Multiple search parameters may be provided.
+//
 // By default this searches the entire table for matching text.
 // To search particular fields only, use the DataQuery format "@fieldname DataQuery".
+//
 // To match multiple queries within a single search parameter, the | (or) operator can be used eg. "query1|query2".
 func (q *ExportQuery) Search(query string) *ExportQuery {
 	q.params.Add("search", query)
@@ -403,10 +435,14 @@ func (q *ExportQuery) Search(query string) *ExportQuery {
 
 // Where filters results with a SQL-style "where" clause.
 // Only applies to numerical and date columns – use the "search" parameter for strings. Multiple where parameters may be provided.
-// <column><operator><value>
-// Valid operators are >=, >, =, !=, <, and <=.
+//
+// Query format: <column><operator><value>
+//
+// Valid operators: >=, >, =, !=, <, and <=.
+//
 // <column> [not] in (<value>,<value>,...)
 // Match rows where column matches one of the provided values.
+//
 // <column> [not] between <value> and <value>
 // Match rows where column lies within range provided (inclusive).
 func (q *ExportQuery) Where(query string) *ExportQuery {
@@ -414,13 +450,13 @@ func (q *ExportQuery) Where(query string) *ExportQuery {
 	return q
 }
 
-// Conjunction is only applicable when more than one "search" or "where" parameter is provided. Defaults to "and".
+// Conjunction is only applicable when more than one Search() or Where() parameter is provided. Defaults to And.
 func (q *ExportQuery) Conjunction(conjunction Conjunction) *ExportQuery {
 	q.params.Add("conjunction", string(conjunction))
 	return q
 }
 
-// Sort rows by a particular column in a given direction. + denotes ascending order, - denotes descending.
+// Sort rows by a particular column in a given direction. Asc denotes ascending order, Desc denotes descending.
 func (q *ExportQuery) Sort(column string, direction SortDirection) *ExportQuery {
 	q.params.Add("sort", column+string(direction))
 	return q
@@ -473,15 +509,17 @@ type Client struct {
 	Meta *MetaQuery
 }
 
+// buildUri assembles the URI tho which queries should be sent.
 func (client *Client) buildUri(ep endpoint) string {
 	//<root>/<version>/<endpoint>/<api key>/<datapath>/<parameters>
 	return strings.Join([]string{root, version, string(ep), client.key}, "/")
 }
 
 // Data queries the content of table datapaths.
-// Data queries may be filtered, sorted and paginated using the returned request  object.
+// Data queries may be filtered, sorted and paginated using the returned query object.
+//
 // For large tables and tables with a large number of columns, data API calls may take some time to complete.
-// API users are advised to make use of the "select" and/or "limit" parameters whenever possible to improve performance.
+// API users are advised to make use of the Select() and/or Limit() whenever possible to improve performance.
 //
 // Build a query by chaining up parameters, then call Results() to actually perform the query.
 //    client.Data("us.gov.whitehouse.visitor-list").Select("namefull", "appt_made_date").Sort("namefirst", enigma.Desc).Results()
@@ -493,8 +531,8 @@ func (client *Client) Data(datapath string) *DataQuery {
 	}
 }
 
-// Stats queries table datapaths by column for statistics on the data that it contains.
-// Like data queries, stats queries may be filtered, sorted and paginated using the returned request objet.
+// Stats queries table datapaths by column for statistics on the data they contain.
+// Like data queries, stats queries may be filtered, sorted and paginated using the returned query object.
 //
 // Build a query by chaining up parameters, then call Results() to actually perform the query.
 //    client.Stats("us.gov.whitehouse.visitor-list", "total_people").Operation(enigma.Sum).Results()
@@ -508,10 +546,10 @@ func (client *Client) Stats(datapath, column string) *StatsQuery {
 }
 
 // Export requests exports of table datapaths as GZiped files.
-// When the export API is called, an export is queued and the API immediately returns a URL pointing to the future location of the exported file. Users should poll the URL until the file becomes available.
+// When the export API is called, an export is queued and the API immediately returns a URL pointing to the future location of the exported file.
 //
 // Build a query by chaining up parameters, then call FileUrl() to perform the query and get the Url of the file to download.
-//    client.Export("us.gov.whitehouse.visitor-list").Select("namefull").Sort("namefull", Asc).FileUrl()
+//    client.Export("us.gov.whitehouse.visitor-list").Select("namefull").Sort("namefull", Asc).FileUrl(nil)
 func (client *Client) Export(datapath string) *ExportQuery {
 	return &ExportQuery{
 		datapath: datapath,
