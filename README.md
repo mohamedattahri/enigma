@@ -1,4 +1,4 @@
-# Go-Enigma
+# Go-Enigma [![Build Status](https://travis-ci.org/mohamedattahri/go-enigma.svg?branch=master)](https://travis-ci.org/mohamedattahri/go-enigma)
 
 [Enigma.io](http://enigma.io) lets you quickly search and analyze billions of public records published by governments, companies and organizations.
 
