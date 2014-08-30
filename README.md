@@ -77,7 +77,7 @@ fmt.Println(obj["sum"])
 ### Export
 
 ````go
-url, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl(nil)
+url, err := client.Export("us.gov.whitehouse.visitor-list").FileURL(nil)
 if err != nil {
 	fmt.Println(err)
 	return

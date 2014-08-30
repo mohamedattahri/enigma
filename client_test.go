@@ -1,10 +1,11 @@
 package enigma
 
 import (
-	enigma "."
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	enigma "."
 )
 
 const (
@@ -53,7 +54,7 @@ func Example_export() {
 	ready := make(chan string)
 
 	client := enigma.NewClient("some_api_key")
-	_, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl(ready)
+	_, err := client.Export("us.gov.whitehouse.visitor-list").FileURL(ready)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -66,19 +67,19 @@ func Example_export() {
 
 func TestUrlBuilding(t *testing.T) {
 	query1 := client.Data("us.gov.whitehouse.visitor-list").Select("namefull", "appt_made_date").Sort("namefirst", Desc)
-	uri1 := buildUrl(query1.baseUri, query1.datapath, query1.params)
+	uri1 := buildURL(query1.baseUri, query1.datapath, query1.params)
 	if uri1 != "https://api.enigma.io/v2/data/VNVEhSReVMUGUw9SEdd6ZNJmRtptRl4uPOfTHyINKMgNPaisVmhFH/us.gov.whitehouse.visitor-list?select=namefull%2Cappt_made_date&sort=namefirst-" {
 		t.Fatal(uri1)
 	}
 
 	query2 := client.Stats("us.gov.whitehouse.visitor-list", "total_people").Operation(Sum)
-	uri2 := buildUrl(query2.baseUri, query2.datapath, query2.params)
+	uri2 := buildURL(query2.baseUri, query2.datapath, query2.params)
 	if uri2 != "https://api.enigma.io/v2/stats/VNVEhSReVMUGUw9SEdd6ZNJmRtptRl4uPOfTHyINKMgNPaisVmhFH/us.gov.whitehouse.visitor-list?operation=sum&select=total_people" {
 		t.Fatal(uri2)
 	}
 
 	query3 := client.Export("us.gov.whitehouse.visitor-list").Select("namefull")
-	uri3 := buildUrl(query3.baseUri, query3.datapath, query3.params)
+	uri3 := buildURL(query3.baseUri, query3.datapath, query3.params)
 	if uri3 != "https://api.enigma.io/v2/export/VNVEhSReVMUGUw9SEdd6ZNJmRtptRl4uPOfTHyINKMgNPaisVmhFH/us.gov.whitehouse.visitor-list?select=namefull" {
 		t.Fatal(uri3)
 	}
@@ -137,8 +138,8 @@ func TestDataQuerySelect(t *testing.T) {
 		t.Fatal("Parameter was not properly added to the query")
 	}
 
-	m_query := client.Data(datapath).Select("column1", "column2", "column3")
-	if m_query.params.Get("select") != "column1,column2,column3" {
+	mQuery := client.Data(datapath).Select("column1", "column2", "column3")
+	if mQuery.params.Get("select") != "column1,column2,column3" {
 		t.Fatal("Parameter with multiple values was not added properly to the query")
 	}
 }
@@ -253,8 +254,8 @@ func TestExportQuerySelect(t *testing.T) {
 		t.Fatal("Parameter was not properly added to the query")
 	}
 
-	m_query := client.Export(datapath).Select("column1", "column2", "column3")
-	if m_query.params.Get("select") != "column1,column2,column3" {
+	mQuery := client.Export(datapath).Select("column1", "column2", "column3")
+	if mQuery.params.Get("select") != "column1,column2,column3" {
 		t.Fatal("Parameter with multiple values was not added properly to the query")
 	}
 }

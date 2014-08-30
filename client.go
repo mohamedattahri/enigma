@@ -47,6 +47,7 @@ const (
 // Conjunction represents the logical link between multiple search or where parameters.
 type Conjunction string
 
+// Valid conjunctions
 const (
 	Or  Conjunction = "or"
 	And Conjunction = "and"
@@ -57,13 +58,16 @@ const (
 type SortDirection string
 
 const (
-	Asc  SortDirection = "+"
+	// Asc for ascending order
+	Asc SortDirection = "+"
+	// Desc for descending order
 	Desc SortDirection = "-"
 )
 
 // Operation represents a calculation that a stats request can perform on a selected column.
 type Operation string
 
+// Valid stat operations
 const (
 	Sum       Operation = "sum"
 	Avg       Operation = "avg"
@@ -82,7 +86,7 @@ type query struct {
 
 // Although used in a single location, this function has been isolated to make the code
 // easier to test.
-func buildUrl(baseUri, datapath string, params url.Values) string {
+func buildURL(baseUri, datapath string, params url.Values) string {
 	uri := baseUri + "/" + datapath
 	if len(params) > 0 {
 		uri += "?" + params.Encode()
@@ -92,7 +96,7 @@ func buildUrl(baseUri, datapath string, params url.Values) string {
 
 // doQuery performs the actual HTTP request and parses the returned JSON into a typed response structure.
 func doQuery(baseUri, datapath string, params url.Values, response interface{}) (err error) {
-	uri := buildUrl(baseUri, datapath, params)
+	uri := buildURL(baseUri, datapath, params)
 
 	resp, err := http.Get(uri)
 	if err != nil {
@@ -110,9 +114,8 @@ func doQuery(baseUri, datapath string, params url.Values, response interface{}) 
 		var e map[string]interface{}
 		if json.Unmarshal(body, &e) != nil {
 			return errors.New(resp.Status)
-		} else {
-			return errors.New(e["info"].(map[string]interface{})["additional"].(string))
 		}
+		return errors.New(e["info"].(map[string]interface{})["additional"].(string))
 	}
 
 	// Parsing the response into the provided response struct.
@@ -178,7 +181,7 @@ type MetaTableNodeResponse struct {
 		} `json:"db_boundary_tables"`
 		AncestorDatapaths []string `json:"ancestor_datapaths"`
 		Documents         []struct {
-			Url   string `json:"url"`
+			URL   string `json:"url"`
 			Title string `json:"title"`
 			Type  string `json:"type"`
 		} `json:"documents"`
@@ -239,7 +242,7 @@ func (q *StatsQuery) Limit(limit int) *StatsQuery {
 	return q
 }
 
-// Filter results by only returning rows that match a search StatsQuery. Multiple search parameters may be provided.
+// Search filters results by only returning rows that match a search query. Multiple search parameters may be provided.
 // By default this searches the entire table for matching text.
 //
 // To search particular fields only, use the StatsQuery format "@fieldname StatsQuery".
@@ -408,8 +411,8 @@ func (q *DataQuery) Results() (response DataResponse, err error) {
 // exportResponse attributes
 type exportResponse struct {
 	DataPath  string `json:"data_path"`
-	ExportUrl string `json:"export_url"`
-	HeadUrl   string `json:"head_url"`
+	ExportURL string `json:"export_url"`
+	HeadURL   string `json:"head_url"`
 }
 
 // ExportQuery queries data tables to produce a file that can be downloaded.
@@ -468,7 +471,7 @@ func (q *ExportQuery) Page(number int) *ExportQuery {
 	return q
 }
 
-// FileUrl returns the URL of the GZip file containing the exported data.
+// FileURL returns the URL of the GZip file containing the exported data.
 //
 // Passing the ready chan will poll the returned URL until the  file is ready
 // for take out. The url pushed down the channel should be used to download the file.
@@ -476,28 +479,28 @@ func (q *ExportQuery) Page(number int) *ExportQuery {
 // Passing nil will simply return the url of the file to download.
 //
 // 	ready := make(chan string)
-// 	_, err := client.Export("us.gov.whitehouse.visitor-list").FileUrl(ready)
+// 	_, err := client.Export("us.gov.whitehouse.visitor-list").FileURL(ready)
 // 	if err != nil {
 // 		fmt.Println(err)
 // 		return
 // 	}
 // 	downloadUrl := <- ready
-func (q *ExportQuery) FileUrl(ready chan string) (url string, err error) {
+func (q *ExportQuery) FileURL(ready chan string) (url string, err error) {
 	var response exportResponse
 	err = doQuery(q.baseUri, q.datapath, q.params, &response)
 
 	if ready != nil {
-		go func(pollingUrl, downloadUrl string) {
+		go func(pollingURL, downloadURL string) {
 			for interval := pollingInterval; interval < pollingTimeout; interval = interval * 2 {
-				if resp, err := http.Head(pollingUrl); err == nil && resp.StatusCode == 200 {
-					ready <- downloadUrl
+				if resp, err := http.Head(pollingURL); err == nil && resp.StatusCode == 200 {
+					ready <- downloadURL
 					break
 				}
 				time.Sleep(interval)
 			}
-		}(response.HeadUrl, response.ExportUrl)
+		}(response.HeadURL, response.ExportURL)
 	}
-	return response.ExportUrl, err
+	return response.ExportURL, err
 }
 
 // Client of the Enigma API.
@@ -553,8 +556,8 @@ func (client *Client) Stats(datapath, column string) *StatsQuery {
 // Export requests exports of table datapaths as GZiped files.
 // When the export API is called, an export is queued and the API immediately returns a URL pointing to the future location of the exported file.
 //
-// Build a query by chaining up parameters, then call FileUrl() to perform the query and get the Url of the file to download.
-//    client.Export("us.gov.whitehouse.visitor-list").Select("namefull").Sort("namefull", Asc).FileUrl(nil)
+// Build a query by chaining up parameters, then call FileURL() to perform the query and get the Url of the file to download.
+//    client.Export("us.gov.whitehouse.visitor-list").Select("namefull").Sort("namefull", Asc).FileURL(nil)
 func (client *Client) Export(datapath string) *ExportQuery {
 	return &ExportQuery{
 		datapath: datapath,
