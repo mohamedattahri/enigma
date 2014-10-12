@@ -1,12 +1,12 @@
-# Go-Enigma [![Build Status](https://travis-ci.org/mohamedattahri/go-enigma.svg?branch=master)](https://travis-ci.org/mohamedattahri/go-enigma) [![GoDoc](https://godoc.org/github.com/mohamedattahri/go-enigma?status.svg)](https://godoc.org/github.com/mohamedattahri/go-enigma)
+# Enigma [![Build Status](https://travis-ci.org/mohamedattahri/enigma.svg?branch=master)](https://travis-ci.org/mohamedattahri/enigma) [![GoDoc](https://godoc.org/github.com/mohamedattahri/enigma?status.svg)](https://godoc.org/github.com/mohamedattahri/enigma)
 
 [Enigma.io](http://enigma.io) lets you quickly search and analyze billions of public records published by governments, companies and organizations.
 
-Go-Enigma is a simple go client for the [enigma.io](https://app.enigma.io/api) API.
+Enigma is a simple go client for the [enigma.io](https://app.enigma.io/api) API.
 
 ## Documentation
 
-Full documentation and examples are available in the [godoc package index](http://godoc.org/github.com/mohamedattahri/go-enigma) [![GoDoc](https://godoc.org/github.com/mohamedattahri/go-enigma?status.svg)](https://godoc.org/github.com/mohamedattahri/enigma)
+Full documentation and examples are available in the [godoc package index](http://godoc.org/github.com/mohamedattahri/enigma) [![GoDoc](https://godoc.org/github.com/mohamedattahri/go-enigma?status.svg)](https://godoc.org/github.com/mohamedattahri/enigma)
 
 ## Examples
 
@@ -16,7 +16,7 @@ Full documentation and examples are available in the [godoc package index](http:
 package main
 
 import (
-	enigma "github.com/mohamedattahri/go-enigma"
+	enigma "github.com/mohamedattahri/enigma"
 )
 
 func main() {
