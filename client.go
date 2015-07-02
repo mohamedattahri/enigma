@@ -79,15 +79,15 @@ const (
 )
 
 type query struct {
-	baseUri  string
+	baseURI  string
 	datapath string
 	params   url.Values
 }
 
 // Although used in a single location, this function has been isolated to make the code
 // easier to test.
-func buildURL(baseUri, datapath string, params url.Values) string {
-	uri := baseUri + "/" + datapath
+func buildURL(baseURI, datapath string, params url.Values) string {
+	uri := baseURI + "/" + datapath
 	if len(params) > 0 {
 		uri += "?" + params.Encode()
 	}
@@ -95,8 +95,8 @@ func buildURL(baseUri, datapath string, params url.Values) string {
 }
 
 // doQuery performs the actual HTTP request and parses the returned JSON into a typed response structure.
-func doQuery(baseUri, datapath string, params url.Values, response interface{}) (err error) {
-	uri := buildURL(baseUri, datapath, params)
+func doQuery(baseURI, datapath string, params url.Values, response interface{}) (err error) {
+	uri := buildURL(baseURI, datapath, params)
 
 	resp, err := http.Get(uri)
 	if err != nil {
@@ -200,13 +200,13 @@ type MetaQuery query
 
 // Parent metadata request for the given datapath.
 func (q *MetaQuery) Parent(datapath string) (response *MetaParentNodeResponse, err error) {
-	err = doQuery(q.baseUri, datapath, q.params, &response)
+	err = doQuery(q.baseURI, datapath, q.params, &response)
 	return
 }
 
 // Table metadata request for the given datapath.
 func (q *MetaQuery) Table(datapath string) (response *MetaTableNodeResponse, err error) {
-	err = doQuery(q.baseUri, datapath, q.params, &response)
+	err = doQuery(q.baseURI, datapath, q.params, &response)
 	return
 }
 
@@ -321,7 +321,7 @@ func (q *StatsQuery) Page(number int) *StatsQuery {
 
 // Results or error returned by the server.
 func (q *StatsQuery) Results() (response *StatsResponse, err error) {
-	err = doQuery(q.baseUri, q.datapath, q.params, &response)
+	err = doQuery(q.baseURI, q.datapath, q.params, &response)
 	return
 }
 
@@ -404,7 +404,7 @@ func (q *DataQuery) Page(number int) *DataQuery {
 
 // Results or error returned by the server.
 func (q *DataQuery) Results() (response DataResponse, err error) {
-	err = doQuery(q.baseUri, q.datapath, q.params, &response)
+	err = doQuery(q.baseURI, q.datapath, q.params, &response)
 	return
 }
 
@@ -487,7 +487,7 @@ func (q *ExportQuery) Page(number int) *ExportQuery {
 // 	downloadUrl := <- ready
 func (q *ExportQuery) FileURL(ready chan string) (url string, err error) {
 	var response exportResponse
-	err = doQuery(q.baseUri, q.datapath, q.params, &response)
+	err = doQuery(q.baseURI, q.datapath, q.params, &response)
 
 	if ready != nil {
 		go func(pollingURL, downloadURL string) {
@@ -510,8 +510,8 @@ type Client struct {
 	key string
 }
 
-// buildUri assembles the URI tho which queries should be sent.
-func (client *Client) buildUri(ep endpoint) string {
+// buildURI assembles the URI tho which queries should be sent.
+func (client *Client) buildURI(ep endpoint) string {
 	//<root>/<version>/<endpoint>/<api key>/<datapath>/<parameters>
 	return strings.Join([]string{root, version, string(ep), client.key}, "/")
 }
@@ -519,7 +519,7 @@ func (client *Client) buildUri(ep endpoint) string {
 // Meta can be used to query all datapaths for their metadata.
 func (client *Client) Meta() *MetaQuery {
 	return &MetaQuery{
-		baseUri: client.buildUri(meta),
+		baseURI: client.buildURI(meta),
 	}
 }
 
@@ -535,7 +535,7 @@ func (client *Client) Data(datapath string) *DataQuery {
 	return &DataQuery{
 		datapath: datapath,
 		params:   url.Values{},
-		baseUri:  client.buildUri(data),
+		baseURI:  client.buildURI(data),
 	}
 }
 
@@ -548,7 +548,7 @@ func (client *Client) Stats(datapath, column string) *StatsQuery {
 	q := &StatsQuery{
 		datapath: datapath,
 		params:   url.Values{},
-		baseUri:  client.buildUri(stats),
+		baseURI:  client.buildURI(stats),
 	}
 	return q.selectColumn(column)
 }
@@ -562,7 +562,7 @@ func (client *Client) Export(datapath string) *ExportQuery {
 	return &ExportQuery{
 		datapath: datapath,
 		params:   url.Values{},
-		baseUri:  client.buildUri(export),
+		baseURI:  client.buildURI(export),
 	}
 }
 

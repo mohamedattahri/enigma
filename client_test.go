@@ -67,19 +67,19 @@ func Example_export() {
 
 func TestUrlBuilding(t *testing.T) {
 	query1 := client.Data("us.gov.whitehouse.visitor-list").Select("namefull", "appt_made_date").Sort("namefirst", Desc)
-	uri1 := buildURL(query1.baseUri, query1.datapath, query1.params)
+	uri1 := buildURL(query1.baseURI, query1.datapath, query1.params)
 	if uri1 != "https://api.enigma.io/v2/data/VNVEhSReVMUGUw9SEdd6ZNJmRtptRl4uPOfTHyINKMgNPaisVmhFH/us.gov.whitehouse.visitor-list?select=namefull%2Cappt_made_date&sort=namefirst-" {
 		t.Fatal(uri1)
 	}
 
 	query2 := client.Stats("us.gov.whitehouse.visitor-list", "total_people").Operation(Sum)
-	uri2 := buildURL(query2.baseUri, query2.datapath, query2.params)
+	uri2 := buildURL(query2.baseURI, query2.datapath, query2.params)
 	if uri2 != "https://api.enigma.io/v2/stats/VNVEhSReVMUGUw9SEdd6ZNJmRtptRl4uPOfTHyINKMgNPaisVmhFH/us.gov.whitehouse.visitor-list?operation=sum&select=total_people" {
 		t.Fatal(uri2)
 	}
 
 	query3 := client.Export("us.gov.whitehouse.visitor-list").Select("namefull")
-	uri3 := buildURL(query3.baseUri, query3.datapath, query3.params)
+	uri3 := buildURL(query3.baseURI, query3.datapath, query3.params)
 	if uri3 != "https://api.enigma.io/v2/export/VNVEhSReVMUGUw9SEdd6ZNJmRtptRl4uPOfTHyINKMgNPaisVmhFH/us.gov.whitehouse.visitor-list?select=namefull" {
 		t.Fatal(uri3)
 	}
